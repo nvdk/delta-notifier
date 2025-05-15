@@ -1,4 +1,4 @@
-import { app, errorHandler  } from 'mu';
+import { app, errorHandler } from 'mu';
 import services from './config/rules';
 import normalizeQuad from './config/normalize-quad';
 import bodyParser from 'body-parser';
@@ -35,6 +35,16 @@ const groupedServices = services.reduce((acc, service) => {
   return acc;
 }, {});
 
+
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large') {
+    console.warn(`Payload too large for ${req.method} ${req.originalUrl}`);
+    return res.status(413).send('Payload too large');
+  }
+
+  // Pass other errors to the default handler
+  next(err);
+});
 
 app.get( '/', function( req, res ) {
   res.status(200);
@@ -105,12 +115,12 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
       : changedTriples.some((triple) =>
           tripleMatchesSpec(triple, firstEntry.match)
         );
-  
+
     if( someTripleMatchedSpec ) {
       const matchingServices = groupedServices[matchKey];
       matchingServices.forEach( async (entry) => {
         if( DEBUG_TRIPLE_MATCHES_SPEC )
-          console.log(`Triple matches spec? ${someTripleMatchedSpec}`);  
+          console.log(`Triple matches spec? ${someTripleMatchedSpec}`);
         // for each entity
         if( DEBUG_DELTA_MATCH )
           console.log(`Checking if we want to send to ${entry.callback.url}`);
@@ -123,7 +133,6 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
           // inform matching entities
           if( DEBUG_DELTA_SEND )
             console.log(`Going to send ${entry.callback.method} to ${entry.callback.url}`);
-
           if( entry.options?.gracePeriod ) {
             sendBundledRequest(entry, originFilteredChangeSets, muCallIdTrail, muSessionId);
           } else {
