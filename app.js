@@ -1,4 +1,4 @@
-import { app, errorHandler  } from 'mu';
+import { app, errorHandler } from 'mu';
 import services from './config/rules';
 import normalizeQuad from './config/normalize-quad';
 import bodyParser from 'body-parser';
@@ -35,6 +35,16 @@ const groupedServices = services.reduce((acc, service) => {
   return acc;
 }, {});
 
+
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large') {
+    console.warn(`Payload too large for ${req.method} ${req.originalUrl}`);
+    return res.status(413).send('Payload too large');
+  }
+
+  // Pass other errors to the default handler
+  next(err);
+});
 
 app.get( '/', function( req, res ) {
   res.status(200);
@@ -82,6 +92,14 @@ app.use((err, req, res, next) => {
 app.use(errorHandler);
 
 async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
+  let allInserts = [];
+  let allDeletes = [];
+  changeSets.forEach( (change) => {
+    allInserts = [...allInserts, ...change.insert];
+    allDeletes = [...allDeletes, ...change.delete];
+  } );
+  const changedTriples = [...allInserts, ...allDeletes];
+
   // Iterate over each unique match pattern
   for (const matchKey in groupedServices) {
     const firstEntry = groupedServices[matchKey][0];
@@ -92,36 +110,29 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
       maybePatternFilteredChangesets = filterChangesetsOnPattern(changeSets, firstEntry);
     }
 
-    let allInserts = [];
-    let allDeletes = [];
-    maybePatternFilteredChangesets.forEach( (change) => {
-      allInserts = [...allInserts, ...change.insert];
-      allDeletes = [...allDeletes, ...change.delete];
-    } );
-    const changedTriples = [...allInserts, ...allDeletes];
-    const someTripleMatchedSpec =
-          changedTriples
-          .some( (triple) => tripleMatchesSpec( triple, firstEntry.match ) );
-    const matchingServices = groupedServices[matchKey];
-    matchingServices.forEach( async (entry) => {
-      if( DEBUG_TRIPLE_MATCHES_SPEC )
-        console.log(`Triple matches spec? ${someTripleMatchedSpec}`);
+    const someTripleMatchedSpec = sendMatchesOnly
+      ? maybePatternFilteredChangesets.length > 0 // makes the assumption that maybePatternFilteredChangesets has no empty change sets
+      : changedTriples.some((triple) =>
+          tripleMatchesSpec(triple, firstEntry.match)
+        );
 
-      if( someTripleMatchedSpec ) {
+    if( someTripleMatchedSpec ) {
+      const matchingServices = groupedServices[matchKey];
+      matchingServices.forEach( async (entry) => {
+        if( DEBUG_TRIPLE_MATCHES_SPEC )
+          console.log(`Triple matches spec? ${someTripleMatchedSpec}`);
         // for each entity
         if( DEBUG_DELTA_MATCH )
           console.log(`Checking if we want to send to ${entry.callback.url}`);
-        const matchSpec = entry.match;
         const originFilteredChangeSets = await filterMatchesForOrigin( maybePatternFilteredChangesets, entry );
 
         if ( originFilteredChangeSets.length > 0 ) {
           if( DEBUG_TRIPLE_MATCHES_SPEC && entry.options.ignoreFromSelf )
-            console.log(`There are ${originFilteredChangeSets.length} changes sets not from ${hostnameForEntry( entry )}`);
+            console.log(`There are ${originFilteredChangeSets.length} change sets not from ${hostnameForEntry( entry )}`);
 
           // inform matching entities
           if( DEBUG_DELTA_SEND )
             console.log(`Going to send ${entry.callback.method} to ${entry.callback.url}`);
-
           if( entry.options?.gracePeriod ) {
             sendBundledRequest(entry, originFilteredChangeSets, muCallIdTrail, muSessionId);
           } else {
@@ -129,8 +140,8 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
             sendRequest( entry, foldedChangeSets, muCallIdTrail, muSessionId );
           }
         }
-      }
-    } );
+      });
+    }
   }
 }
 

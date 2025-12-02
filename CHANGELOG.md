@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -7,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] (2025-12-02)
 ### Added
 - Error handling improvements
 - Better logging for failed requests
+- Add option to send only matches to receiving services
 
 ### Changed
 - Load environment variables from correct path
@@ -20,12 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Only send changesets when there are changes left after filtering
-- Add option to send only matches to receiving services
 
-## [0.4.0] - Current Release
+## [0.4.0] 
 
 ### Initial release features
 - Delta notification system for mu.semte.ch microservices
 - Configurable rules and normalization
 - Bundle request handling
 - Request folding and matching capabilities
+
