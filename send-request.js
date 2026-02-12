@@ -1,5 +1,6 @@
 import http from "http";
 import { uuid } from "mu";
+import { recordNotification } from "./metrics.js";
 
 const DEFAULT_RETRY_TIMEOUT = 250;
 const DEBUG_DELTA_SEND = process.env["DEBUG_DELTA_SEND"];
@@ -119,6 +120,8 @@ export async function sendRequest(
     }
     if (DEBUG_DELTA_SEND)
       console.log(`Executing send ${method} to ${url}`);
+    const target = (new URL(url)).hostname;
+    const startTime = Date.now();
     try {
       const keepAliveAgent = new http.Agent({
         keepAlive: true,
@@ -129,6 +132,12 @@ export async function sendRequest(
         body,
         agent: keepAliveAgent,
       });
+      const duration = (Date.now() - startTime) / 1000;
+      if (response.ok) {
+        recordNotification(target, 'success', duration);
+      } else {
+        recordNotification(target, 'error', duration);
+      }
       await handleResponse(
         response,
         entry,
@@ -139,6 +148,7 @@ export async function sendRequest(
         retriesLeft
       );
     } catch (error) {
+      recordNotification(target, 'error', (Date.now() - startTime) / 1000);
       console.error(`Error sending delta to ${url}`, error);
     }
   } else {

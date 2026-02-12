@@ -1,4 +1,4 @@
-import { app, errorHandler } from 'mu';
+import { app, errorHandler, beforeExit } from 'mu';
 import services from './config/rules';
 import normalizeQuad from './config/normalize-quad';
 import bodyParser from 'body-parser';
@@ -18,6 +18,11 @@ import {
   LOG_REQUESTS,
   LOG_SERVER_CONFIGURATION,
 } from './env';
+import { metricsHandler, recordDeltaReceived } from './metrics.js';
+
+beforeExit( async () => {
+  console.log('Shutting down delta-notifier gracefully...');
+});
 
 // Log server config if requested
 if(LOG_SERVER_CONFIGURATION)
@@ -51,6 +56,8 @@ app.get( '/', function( req, res ) {
   res.send("Hello, delta notification is running");
 } );
 
+app.get( '/metrics', metricsHandler );
+
 app.post( '/', bodyParser.json({limit: '500mb'}), function( req, res ) {
   if( LOG_REQUESTS ) {
     console.log("Logging request body");
@@ -58,6 +65,8 @@ app.post( '/', bodyParser.json({limit: '500mb'}), function( req, res ) {
   }
 
   const changeSets = req.body.changeSets;
+
+  recordDeltaReceived(changeSets.length);
 
   const originalMuCallIdTrail = JSON.parse( req.get('mu-call-id-trail') || "[]" );
   const originalMuCallId = req.get('mu-call-id');
