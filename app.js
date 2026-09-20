@@ -138,15 +138,30 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
 
 /**
  * Normalizes an object by sorting its keys and converting it to a string.
+ * RegExp values are converted to their string form, so match patterns
+ * that differ only in regex still get different keys.
  *
  * @param {Object} obj - The object to normalize.
  * @returns {string} A string representation of the normalized object.
  */
 function normalizeObject(obj) {
-  return JSON.stringify(Object.keys(obj)
-                        .sort()
-                        .reduce((acc, key) => {
-                          acc[key] = obj[key];
-                          return acc;
-                        }, {}));
+  const sortedObject = Object.keys(obj)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = obj[key];
+      return acc;
+    }, {});
+  return JSON.stringify(sortedObject, serializeRegExp);
+}
+
+/**
+ * JSON.stringify replacer that returns the string form of a RegExp.
+ * Without it, JSON.stringify serializes every RegExp as {}.
+ *
+ * @param {string} key - The key of the value being serialized.
+ * @param {*} value - The value being serialized.
+ * @returns {*} The string form of a RegExp, or the value itself.
+ */
+function serializeRegExp(key, value) {
+  return value instanceof RegExp ? value.toString() : value;
 }
