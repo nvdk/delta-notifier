@@ -31,7 +31,7 @@ if(LOG_SERVER_CONFIGURATION)
 let index = 0;
 const groupedServices = services.reduce((acc, service) => {
   // Create a unique key for the match pattern
-  const matchKey = `${normalizeObject(service.match)}${service.options.sendMatchesOnly || false}`;
+  const matchKey = `${normalizeObject(service.match)}${service.options?.sendMatchesOnly || false}`;
   if (!acc[matchKey]) {
     acc[matchKey] = [];
   }
@@ -113,7 +113,7 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
   for (const matchKey in groupedServices) {
     const firstEntry = groupedServices[matchKey][0];
     // can use first entry since it's part of grouping
-    const sendMatchesOnly = firstEntry.options.sendMatchesOnly;
+    const sendMatchesOnly = firstEntry.options?.sendMatchesOnly;
     let maybePatternFilteredChangesets = changeSets;
     if (sendMatchesOnly) {
       maybePatternFilteredChangesets = filterChangesetsOnPattern(changeSets, firstEntry);
@@ -136,7 +136,7 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
         const originFilteredChangeSets = await filterMatchesForOrigin( maybePatternFilteredChangesets, entry );
 
         if ( originFilteredChangeSets.length > 0 ) {
-          if( DEBUG_TRIPLE_MATCHES_SPEC && entry.options.ignoreFromSelf )
+          if( DEBUG_TRIPLE_MATCHES_SPEC && entry.options?.ignoreFromSelf )
             console.log(`There are ${originFilteredChangeSets.length} change sets not from ${hostnameForEntry( entry )}`);
 
           // inform matching entities

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Use the mu-javascript-template feature build with runtime `/config` resolution (`nvdk/mu-javascript-template:feature-runtime-config`), which runs on Node 22 as an arbitrary non-root user with `/config` mounted read-only
 
+### Fixed
+- Rules without `options` no longer crash on incoming deltas
+- Default maildelivery rule uses `callback.url` instead of `callback.uri`
+
 ## [1.1.0]
 ### Added
 - Prometheus metrics endpoint (`/metrics`) exposing delta throughput, notification rates, latency histograms, and pending bundle counts
