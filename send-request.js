@@ -109,7 +109,7 @@ export async function sendRequest(
       "mu-session-id": muSessionId,
     };
 
-    if (changeSets[0].allowedGroups) {
+    if (changeSets[0].allowedGroups) { // sudo queries will not get allowedGroups in sparql-parser:0.0.16
       headers["MU-AUTH-ALLOWED-GROUPS"] = changeSets[0].allowedGroups;
     }
 
