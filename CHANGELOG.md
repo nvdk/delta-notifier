@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.0]
+## [1.2.0] (2026-10-26)
 ### Changed
 - Upgrade base image to `nvdk/mu-javascript-template:2.0.0-beta.3`:
   - runs on Node.js 24 on a slim base image
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rules without `options` no longer crash on incoming deltas
 - Default maildelivery rule uses `callback.url` instead of `callback.uri`
 
-## [1.1.0]
+## [1.1.0] (2026-02-12)
 ### Added
 - Prometheus metrics endpoint (`/metrics`) exposing delta throughput, notification rates, latency histograms, and pending bundle counts
 - Support for regex values in match specifications (e.g. match on patterns instead of exact URIs)
@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Only send changesets when there are changes left after filtering
 
-## [0.4.0]
+## [0.4.0] (2024-05-22)
 
 ### Initial release features
 - Delta notification system for mu.semte.ch microservices
