@@ -1,1 +1,1 @@
-FROM semtech/mu-javascript-template:1.9.1
+FROM nvdk/mu-javascript-template:feature-runtime-config
