@@ -33,7 +33,7 @@ export function filterChangesetsOnPattern(changeSets, entry) {
   return filteredChangesets;
 }
 
-function serializeMatchSpec(matchSpec) {
+export function serializeMatchSpec(matchSpec) {
   return JSON.stringify(matchSpec, function(key, value) {
     if (value instanceof RegExp) {
       return `RegExp(${value.toString()})`;

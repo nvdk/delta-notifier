@@ -9,7 +9,8 @@ import {
   filterChangesetsOnPattern,
   tripleMatchesSpec,
   filterMatchesForOrigin,
-  hostnameForEntry
+  hostnameForEntry,
+  serializeMatchSpec
 } from './matching';
 import {
   DEBUG_DELTA_MATCH,
@@ -159,7 +160,7 @@ async function informWatchers( changeSets, res, muCallIdTrail, muSessionId ){
  * @returns {string} A string representation of the normalized object.
  */
 function normalizeObject(obj) {
-  return JSON.stringify(Object.keys(obj)
+  return serializeMatchSpec(Object.keys(obj)
                         .sort()
                         .reduce((acc, key) => {
                           acc[key] = obj[key];
