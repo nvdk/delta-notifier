@@ -6,10 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.0]
 ### Changed
-- Use the mu-javascript-template feature build with runtime `/config` resolution (`nvdk/mu-javascript-template:feature-runtime-config`), which runs on Node 22 as an arbitrary non-root user with `/config` mounted read-only
+- Upgrade base image to `nvdk/mu-javascript-template:2.0.0-beta.3`:
+  - runs on Node.js 24 on a slim base image
+  - runs as an arbitrary non-root user (e.g. OpenShift)
+  - `/config` may be mounted read-only (e.g. a Kubernetes ConfigMap); overrides are applied in `$TMPDIR` (default `/tmp`) at startup, so with a read-only root filesystem a writable volume must be mounted on `/tmp`
+- Merge upstream mu-semtech/delta-notifier 0.4.1
 
 ### Fixed
+- Rules with different regex values for the same match key were grouped together, so only the first regex was evaluated and matches were sent to all of those rules
 - Rules without `options` no longer crash on incoming deltas
 - Default maildelivery rule uses `callback.url` instead of `callback.uri`
 
